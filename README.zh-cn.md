@@ -169,7 +169,7 @@ $ make superuser
 
 您可以在[Crowdin](https://crowdin.com/project/lasuite-docs)上帮助我们进行翻译。
 
-如果您打算提交拉取请求，请参阅[CONTRIBUTING](https://github.com/suitenumerique/docs/blob/main/CONTRIBUTING.md)获取指南。
+如果您打算提交拉取请求，请参阅[CONTRIBUTING](/CONTRIBUTING.zh-cn.md)获取指南。
 
 目录结构：
 
