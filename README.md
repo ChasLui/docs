@@ -9,6 +9,10 @@ Welcome to Docs! The open source document editor where your notes can become kno
 </p>
 
 <p align="center">
+English | <a href="/README.zh-cn.md">中文简体</a>
+</p>
+
+<p align="center">
   <a href="https://matrix.to/#/#docs-official:matrix.org">
     Chat on Matrix
   </a> - <a href="/docs/">

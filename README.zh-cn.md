@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+中文简体 | <a href="/README.md">English</a>
+</p>
+
+<p align="center">
   <a href="https://matrix.to/#/#docs-official:matrix.org">
     在Matrix上聊天
   </a> - <a href="/docs/">
