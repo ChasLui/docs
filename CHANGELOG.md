@@ -10,6 +10,7 @@ and this project adheres to
 
 ## Added
 
+- 📝(doc) Added GNU Make link to README #750
 - ✨(frontend) add pinning on doc detail #711
 - 🚩(frontend) feature flag analytic on copy as html #649
 - ✨(frontend) Custom block divider with export #698
@@ -19,6 +20,7 @@ and this project adheres to
 
 - 🧑‍💻(frontend) change literal section open source #702
 - ♻️(frontend) replace cors proxy for export #695
+- 🚨(gitlint) Allow uppercase in commit messages #756
 
 ## Fixed
 
@@ -29,6 +31,7 @@ and this project adheres to
     and descendants views #695
 - 🐛(action) fix notify-argocd workflow #713
 - 🚨(helm) fix helmfile lint #736
+- 🚚(frontend) redirect to 401 page when 401 error #759
 
 
 ## [2.4.0] - 2025-03-06
