@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [3.0.0] - 2025-03-28
+
 ## Added
 
 - 📄(legal) Require contributors to sign a DCO #779
@@ -15,11 +17,13 @@ and this project adheres to
 ## Changed
 
 - ♻️(frontend) Integrate UI kit #783
+- 🏗️(y-provider) manage auth in y-provider app #804
 
 ## Fixed
 
 - 🐛(backend) compute ancestor_links in get_abilities if needed #725
 - 🔒️(back) restrict access to document accesses #801
+
 
 ## [2.6.0] - 2025-03-21
 
@@ -502,8 +506,9 @@ and this project adheres to
 - ✨(frontend) Coming Soon page (#67)
 - 🚀 Impress, project to manage your documents easily and collaboratively.
 
-[unreleased]: https://github.com/numerique-gouv/impress/compare/v2.6.0...main
-[v2.5.0]: https://github.com/numerique-gouv/impress/releases/v2.6.0
+[unreleased]: https://github.com/numerique-gouv/impress/compare/v3.0.0...main
+[v3.0.0]: https://github.com/numerique-gouv/impress/releases/v3.0.0
+[v2.6.0]: https://github.com/numerique-gouv/impress/releases/v2.6.0
 [v2.5.0]: https://github.com/numerique-gouv/impress/releases/v2.5.0
 [v2.4.0]: https://github.com/numerique-gouv/impress/releases/v2.4.0
 [v2.3.0]: https://github.com/numerique-gouv/impress/releases/v2.3.0
