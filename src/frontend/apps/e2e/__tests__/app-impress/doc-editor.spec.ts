@@ -58,22 +58,22 @@ test.describe('Doc Editor', () => {
    *  - signal of the backend to the collaborative server (connection should close)
    *  - reconnection to the collaborative server
    */
-  test('checks the connection with collaborative server', async ({
-    page,
-    browserName,
-  }) => {
+  test('checks the connection with collaborative server', async ({ page }) => {
     let webSocketPromise = page.waitForEvent('websocket', (webSocket) => {
       return webSocket
         .url()
-        .includes('ws://localhost:8083/collaboration/ws/?room=');
+        .includes('ws://localhost:4444/collaboration/ws/?room=');
     });
 
-    const randomDoc = await createDoc(page, 'doc-editor', browserName, 1);
-    await verifyDocName(page, randomDoc[0]);
+    await page
+      .getByRole('button', {
+        name: 'New doc',
+      })
+      .click();
 
     let webSocket = await webSocketPromise;
     expect(webSocket.url()).toContain(
-      'ws://localhost:8083/collaboration/ws/?room=',
+      'ws://localhost:4444/collaboration/ws/?room=',
     );
 
     // Is connected
@@ -99,11 +99,11 @@ test.describe('Doc Editor', () => {
     const wsClose = await wsClosePromise;
     expect(wsClose.isClosed()).toBeTruthy();
 
-    // Checkt the ws is connected again
+    // Check the ws is connected again
     webSocketPromise = page.waitForEvent('websocket', (webSocket) => {
       return webSocket
         .url()
-        .includes('ws://localhost:8083/collaboration/ws/?room=');
+        .includes('ws://localhost:4444/collaboration/ws/?room=');
     });
 
     webSocket = await webSocketPromise;
@@ -338,6 +338,7 @@ test.describe('Doc Editor', () => {
   ].forEach(({ ai_transform, ai_translate }) => {
     test(`it checks AI buttons when can transform is at "${ai_transform}" and can translate is at "${ai_translate}"`, async ({
       page,
+      browserName,
     }) => {
       await mockedDocument(page, {
         accesses: [
@@ -364,11 +365,17 @@ test.describe('Doc Editor', () => {
         link_reach: 'public',
         link_role: 'editor',
         created_at: '2021-09-01T09:00:00Z',
+        title: '',
       });
 
-      await goToGridDoc(page);
+      const [randomDoc] = await createDoc(
+        page,
+        'doc-editor-ai',
+        browserName,
+        1,
+      );
 
-      await verifyDocName(page, 'Mocked document');
+      await verifyDocName(page, randomDoc);
 
       await page.locator('.bn-block-outer').last().fill('Hello World');
 

@@ -410,6 +410,22 @@ class Base(Configuration):
     FRONTEND_THEME = values.Value(
         None, environ_name="FRONTEND_THEME", environ_prefix=None
     )
+    FRONTEND_URL_JSON_FOOTER = values.Value(
+        None, environ_name="FRONTEND_URL_JSON_FOOTER", environ_prefix=None
+    )
+    FRONTEND_FOOTER_FEATURE_ENABLED = values.BooleanValue(
+        default=False,
+        environ_name="FRONTEND_FOOTER_FEATURE_ENABLED",
+        environ_prefix=None,
+    )
+    FRONTEND_FOOTER_VIEW_CACHE_TIMEOUT = values.Value(
+        60 * 60 * 24,
+        environ_name="FRONTEND_FOOTER_VIEW_CACHE_TIMEOUT",
+        environ_prefix=None,
+    )
+    FRONTEND_CSS_URL = values.Value(
+        None, environ_name="FRONTEND_CSS_URL", environ_prefix=None
+    )
 
     # Posthog
     POSTHOG_KEY = values.DictValue(
@@ -528,6 +544,9 @@ class Base(Configuration):
     )
 
     # AI service
+    AI_FEATURE_ENABLED = values.BooleanValue(
+        default=False, environ_name="AI_FEATURE_ENABLED", environ_prefix=None
+    )
     AI_API_KEY = values.Value(None, environ_name="AI_API_KEY", environ_prefix=None)
     AI_BASE_URL = values.Value(None, environ_name="AI_BASE_URL", environ_prefix=None)
     AI_MODEL = values.Value(None, environ_name="AI_MODEL", environ_prefix=None)
@@ -586,14 +605,16 @@ class Base(Configuration):
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
+        "formatters": {
+            "simple": {
+                "format": "{asctime} {name} {levelname} {message}",
+                "style": "{",
+            },
+        },
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
-                "level": values.Value(
-                    "ERROR",
-                    environ_name="LOGGING_LEVEL_HANDLERS_CONSOLE",
-                    environ_prefix=None,
-                ),
+                "formatter": "simple",
             },
         },
         # Override root logger to send it to console

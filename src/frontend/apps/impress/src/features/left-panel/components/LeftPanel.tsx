@@ -1,5 +1,5 @@
 import { usePathname } from 'next/navigation';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { createGlobalStyle, css } from 'styled-components';
 
 import { Box, SeparatedSection } from '@/components';
@@ -30,13 +30,9 @@ export const LeftPanel = () => {
   const colors = theme.colorsTokens();
   const spacings = theme.spacingsTokens();
 
-  const toggle = useCallback(() => {
-    togglePanel(false);
-  }, [togglePanel]);
-
   useEffect(() => {
-    toggle();
-  }, [pathname, toggle]);
+    togglePanel(false);
+  }, [pathname, togglePanel]);
 
   return (
     <>
@@ -49,7 +45,8 @@ export const LeftPanel = () => {
             min-width: 300px;
             overflow: hidden;
             border-right: 1px solid ${colors['greyscale-200']};
-        `}
+          `}
+          className="--docs--left-panel-desktop"
         >
           <Box
             $css={css`
@@ -76,6 +73,7 @@ export const LeftPanel = () => {
               transform: translateX(${isPanelOpen ? '0' : '-100dvw'});
               background-color: var(--c--theme--colors--greyscale-000);
             `}
+            className="--docs--left-panel-mobile"
           >
             <Box
               data-testid="left-panel-mobile"

@@ -44,7 +44,7 @@ export const LeftPanelTargetFilters = () => {
   const onSelectQuery = (query: DocDefaultFilter) => {
     const params = new URLSearchParams(searchParams);
     params.set('target', query);
-    router.replace(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
     togglePanel();
   };
 
@@ -53,6 +53,7 @@ export const LeftPanelTargetFilters = () => {
       $justify="center"
       $padding={{ horizontal: 'sm' }}
       $gap={spacing['2xs']}
+      className="--docs--left-panel-target-filters"
     >
       {defaultQueries.map((query) => {
         const isActive = target === query.targetQuery;

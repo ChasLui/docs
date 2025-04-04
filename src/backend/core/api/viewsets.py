@@ -16,8 +16,10 @@ from django.db import transaction
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Left, Length
 from django.http import Http404, StreamingHttpResponse
+from django.utils.decorators import method_decorator
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.cache import cache_page
 
 import requests
 import rest_framework as drf
@@ -30,6 +32,7 @@ from rest_framework.throttling import UserRateThrottle
 from core import authentication, enums, models
 from core.services.ai_services import AIService
 from core.services.collaboration_services import CollaborationService
+from core.services.config_services import get_footer_json
 from core.utils import extract_attachments, filter_descendants
 
 from . import permissions, serializers, utils
@@ -380,10 +383,7 @@ class DocumentViewSet(
     9. **Media Auth**: Authorize access to document media.
         Example: GET /documents/media-auth/
 
-    10. **Collaboration Auth**: Authorize access to the collaboration server for a document.
-        Example: GET /documents/collaboration-auth/
-
-    11. **AI Transform**: Apply a transformation action on a piece of text with AI.
+    10. **AI Transform**: Apply a transformation action on a piece of text with AI.
         Example: POST /documents/{id}/ai-transform/
         Expected data:
         - text (str): The input text.
@@ -391,7 +391,7 @@ class DocumentViewSet(
         Returns: JSON response with the processed text.
         Throttled by: AIDocumentRateThrottle, AIUserRateThrottle.
 
-    12. **AI Translate**: Translate a piece of text with AI.
+    11. **AI Translate**: Translate a piece of text with AI.
         Example: POST /documents/{id}/ai-translate/
         Expected data:
         - text (str): The input text.
@@ -1207,17 +1207,6 @@ class DocumentViewSet(
             logger.debug("Failed to extract parameters from subrequest URL: %s", exc)
             raise drf.exceptions.PermissionDenied() from exc
 
-    def _auth_get_document(self, pk):
-        """
-        Retrieves the document corresponding to the given primary key (pk).
-        Raises PermissionDenied if the document is not found.
-        """
-        try:
-            return models.Document.objects.get(pk=pk)
-        except models.Document.DoesNotExist as exc:
-            logger.debug("Document with ID '%s' does not exist", pk)
-            raise drf.exceptions.PermissionDenied() from exc
-
     @drf.decorators.action(detail=False, methods=["get"], url_path="media-auth")
     def media_auth(self, request, *args, **kwargs):
         """
@@ -1264,42 +1253,6 @@ class DocumentViewSet(
         request = utils.generate_s3_authorization_headers(key)
 
         return drf.response.Response("authorized", headers=request.headers, status=200)
-
-    @drf.decorators.action(detail=False, methods=["get"], url_path="collaboration-auth")
-    def collaboration_auth(self, request, *args, **kwargs):
-        """
-        This view is used by an Nginx subrequest to control access to a document's
-        collaboration server.
-        """
-        parsed_url = self._auth_get_original_url(request)
-        url_params = self._auth_get_url_params(
-            enums.COLLABORATION_WS_URL_PATTERN, parsed_url.query
-        )
-        document = self._auth_get_document(url_params["pk"])
-
-        abilities = document.get_abilities(request.user)
-        if not abilities.get(self.action, False):
-            logger.debug(
-                "User '%s' lacks permission for document '%s'",
-                request.user,
-                document.pk,
-            )
-            raise drf.exceptions.PermissionDenied()
-
-        if not settings.COLLABORATION_SERVER_SECRET:
-            logger.debug("Collaboration server secret is not defined")
-            raise drf.exceptions.PermissionDenied()
-
-        # Add the collaboration server secret token to the headers
-        headers = {
-            "Authorization": settings.COLLABORATION_SERVER_SECRET,
-            "X-Can-Edit": str(abilities["partial_update"]),
-        }
-
-        if request.user.is_authenticated:
-            headers["X-User-Id"] = str(request.user.id)
-
-        return drf.response.Response("authorized", headers=headers, status=200)
 
     @drf.decorators.action(
         detail=True,
@@ -1734,9 +1687,12 @@ class ConfigView(drf.views.APIView):
             Return a dictionary of public settings.
         """
         array_settings = [
+            "AI_FEATURE_ENABLED",
             "COLLABORATION_WS_URL",
             "CRISP_WEBSITE_ID",
             "ENVIRONMENT",
+            "FRONTEND_CSS_URL",
+            "FRONTEND_FOOTER_FEATURE_ENABLED",
             "FRONTEND_THEME",
             "MEDIA_BASE_URL",
             "POSTHOG_KEY",
@@ -1750,3 +1706,22 @@ class ConfigView(drf.views.APIView):
                 dict_settings[setting] = getattr(settings, setting)
 
         return drf.response.Response(dict_settings)
+
+
+class FooterView(drf.views.APIView):
+    """API ViewSet for sharing the footer JSON."""
+
+    permission_classes = [AllowAny]
+
+    @method_decorator(cache_page(settings.FRONTEND_FOOTER_VIEW_CACHE_TIMEOUT))
+    def get(self, request):
+        """
+        GET /api/v1.0/footer/
+            Return the footer JSON.
+        """
+        json_footer = (
+            get_footer_json(settings.FRONTEND_URL_JSON_FOOTER)
+            if settings.FRONTEND_URL_JSON_FOOTER
+            else {}
+        )
+        return drf.response.Response(json_footer)

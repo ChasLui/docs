@@ -50,6 +50,8 @@ backend:
     DB_USER: dinum
     DB_PASSWORD: pass
     DB_PORT: 5432
+    FRONTEND_FOOTER_FEATURE_ENABLED: true
+    FRONTEND_URL_JSON_FOOTER: https://impress.127.0.0.1.nip.io/contents/footer-demo.json
     POSTGRES_DB: impress
     POSTGRES_USER: dinum
     POSTGRES_PASSWORD: pass
@@ -124,6 +126,7 @@ yProvider:
     tag: "latest"
 
   envVars:
+    COLLABORATION_BACKEND_BASE_URL: https://impress.127.0.0.1.nip.io
     COLLABORATION_LOGGING: true
     COLLABORATION_SERVER_ORIGIN: https://impress.127.0.0.1.nip.io
     COLLABORATION_SERVER_SECRET: my-secret
@@ -136,9 +139,6 @@ ingress:
 ingressCollaborationWS:
   enabled: true
   host: impress.127.0.0.1.nip.io
-  
-  annotations:
-    nginx.ingress.kubernetes.io/auth-url: https://impress.127.0.0.1.nip.io/api/v1.0/documents/collaboration-auth/
 
 ingressCollaborationApi:
   enabled: true

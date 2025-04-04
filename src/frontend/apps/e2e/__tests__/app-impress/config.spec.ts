@@ -2,12 +2,15 @@ import path from 'path';
 
 import { expect, test } from '@playwright/test';
 
-import { createDoc, verifyDocName } from './common';
+import { createDoc } from './common';
 
 const config = {
+  AI_FEATURE_ENABLED: true,
   CRISP_WEBSITE_ID: null,
-  COLLABORATION_WS_URL: 'ws://localhost:8083/collaboration/ws/',
+  COLLABORATION_WS_URL: 'ws://localhost:4444/collaboration/ws/',
   ENVIRONMENT: 'development',
+  FRONTEND_CSS_URL: null,
+  FRONTEND_FOOTER_FEATURE_ENABLED: true,
   FRONTEND_THEME: 'default',
   MEDIA_BASE_URL: 'http://localhost:8083',
   LANGUAGES: [
@@ -98,23 +101,46 @@ test.describe('Config', () => {
     page,
     browserName,
   }) => {
-    const webSocketPromise = page.waitForEvent('websocket', (webSocket) => {
-      return webSocket.url().includes('ws://localhost:8083/collaboration/ws/');
+    await page.goto('/');
+
+    void createDoc(page, 'doc-collaboration', browserName, 1);
+
+    const webSocket = await page.waitForEvent('websocket', (webSocket) => {
+      return webSocket.url().includes('ws://localhost:4444/collaboration/ws/');
+    });
+    expect(webSocket.url()).toContain('ws://localhost:4444/collaboration/ws/');
+  });
+
+  test('it checks the AI feature flag from config endpoint', async ({
+    page,
+    browserName,
+  }) => {
+    await page.route('**/api/v1.0/config/', async (route) => {
+      const request = route.request();
+      if (request.method().includes('GET')) {
+        await route.fulfill({
+          json: {
+            ...config,
+            AI_FEATURE_ENABLED: false,
+          },
+        });
+      } else {
+        await route.continue();
+      }
     });
 
     await page.goto('/');
 
-    const randomDoc = await createDoc(
-      page,
-      'doc-collaboration',
-      browserName,
-      1,
+    await createDoc(page, 'doc-ai-feature', browserName, 1);
+
+    await page.locator('.bn-block-outer').last().fill('Anything');
+    await page.getByText('Anything').dblclick();
+    expect(
+      await page.locator('button[data-test="convertMarkdown"]').count(),
+    ).toBe(1);
+    expect(await page.locator('button[data-test="ai-actions"]').count()).toBe(
+      0,
     );
-
-    await verifyDocName(page, randomDoc[0]);
-
-    const webSocket = await webSocketPromise;
-    expect(webSocket.url()).toContain('ws://localhost:8083/collaboration/ws/');
   });
 
   test('it checks that Crisp is trying to init from config endpoint', async ({
@@ -139,6 +165,30 @@ test.describe('Config', () => {
     await expect(
       page.locator('#crisp-chatbox').getByText('Invalid website'),
     ).toBeVisible();
+  });
+
+  test('it checks FRONTEND_CSS_URL config', async ({ page }) => {
+    await page.route('**/api/v1.0/config/', async (route) => {
+      const request = route.request();
+      if (request.method().includes('GET')) {
+        await route.fulfill({
+          json: {
+            ...config,
+            FRONTEND_CSS_URL: 'http://localhost:123465/css/style.css',
+          },
+        });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+
+    await expect(
+      page
+        .locator('head link[href="http://localhost:123465/css/style.css"]')
+        .first(),
+    ).toBeAttached();
   });
 });
 
